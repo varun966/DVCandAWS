@@ -6,6 +6,7 @@ from nltk.stem.porter import PorterStemmer
 from nltk.corpus import stopwords
 import string
 import nltk
+import yaml
 nltk.download('stopwords')
 nltk.download('punkt')
 nltk.download('punkt_tab')
@@ -33,6 +34,23 @@ file_handler.setFormatter(formatter)
 
 logger.addHandler(console_handler)
 logger.addHandler(file_handler)
+
+def load_params(file_path: str)->dict:
+    """Load Parameters from YAML file."""
+    try:
+        with open(file_path,'r') as file:
+            params = yaml.safe_load(file)
+        logger.debug('Parameters received from %s', file_path)
+        return params
+    except FileNotFoundError:
+        logger.error('File not found %s',file_path)
+        raise
+    except yaml.YAMLError as e:
+        logger.error('YAML error %s',e)
+        raise
+    except Exception as e:
+        logger.error('Unexpected error: %s',e)
+        raise
 
 def transform_text(text):
     """
@@ -84,6 +102,9 @@ def main(text_column='text', target_column='target'):
     Main function to load raw data, preprocess it, and save the processed data.
     """
     try:
+        #load params
+        params = load_params(file_path='params.yaml')
+
         # Fetch the data from data/raw
         train_data = pd.read_csv('./data/raw/train.csv')
         test_data = pd.read_csv('./data/raw/test.csv')
